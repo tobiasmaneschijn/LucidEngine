@@ -1,7 +1,6 @@
 package io.github.tobiasmaneschijn.lwjgl.game;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.glViewport;
 
 import io.github.tobiasmaneschijn.lwjgl.engine.GameObject;
 import io.github.tobiasmaneschijn.lwjgl.engine.IGameLogic;

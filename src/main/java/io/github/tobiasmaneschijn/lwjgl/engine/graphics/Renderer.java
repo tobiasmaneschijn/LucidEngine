@@ -1,11 +1,7 @@
-package io.github.tobiasmaneschijn.lwjgl.game;
+package io.github.tobiasmaneschijn.lwjgl.engine.graphics;
 
 import io.github.tobiasmaneschijn.lwjgl.engine.GameObject;
 import io.github.tobiasmaneschijn.lwjgl.engine.Window;
-import io.github.tobiasmaneschijn.lwjgl.engine.graphics.Camera;
-import io.github.tobiasmaneschijn.lwjgl.engine.graphics.Mesh;
-import io.github.tobiasmaneschijn.lwjgl.engine.graphics.ShaderProgram;
-import io.github.tobiasmaneschijn.lwjgl.engine.graphics.Transformation;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.DirectionalLight;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.PointLight;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.SpotLight;
@@ -13,14 +9,8 @@ import io.github.tobiasmaneschijn.lwjgl.utils.Utils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
-import org.lwjgl.system.MemoryUtil;
-
-import java.nio.FloatBuffer;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
 
 public class Renderer {
 
