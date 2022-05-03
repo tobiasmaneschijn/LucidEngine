@@ -10,7 +10,7 @@ public class Main {
         try {
             boolean vSync = true;
             IGameLogic gameLogic = new DummyGame();
-            GameEngine gameEng = new GameEngine("Toby's Test Env", 600, 480, vSync, gameLogic);
+            GameEngine gameEng = new GameEngine("Toby's Test Env", 1280, 720, vSync, gameLogic);
             gameEng.run();
         } catch (Exception excp) {
             excp.printStackTrace();

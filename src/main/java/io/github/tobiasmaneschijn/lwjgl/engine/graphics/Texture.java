@@ -1,11 +1,8 @@
 package io.github.tobiasmaneschijn.lwjgl.engine.graphics;
 
-import io.github.tobiasmaneschijn.lwjgl.utils.Utils;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryStack;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
@@ -18,18 +15,10 @@ import static org.lwjgl.system.MemoryStack.stackPush;
 public class Texture {
 
     private final int id;
+    private int width;
+    private int height;
 
-    public Texture(String path) throws Exception {
-        this(loadTexture(path));
-    }
-
-    public Texture(int id) {
-        this.id = id;
-    }
-
-    private static int loadTexture(String fileName) throws Exception {
-        int width;
-        int height;
+    Texture(String fileName) throws Exception {
         ByteBuffer image;
         ByteBuffer imageBuffer;
         try {
@@ -39,8 +28,8 @@ public class Texture {
         }
 
         try (MemoryStack stack = stackPush()) {
-            IntBuffer w    = stack.mallocInt(1);
-            IntBuffer h    = stack.mallocInt(1);
+            IntBuffer w = stack.mallocInt(1);
+            IntBuffer h = stack.mallocInt(1);
             IntBuffer comp = stack.mallocInt(1);
 
             // Use info to read image metadata without decoding the entire image.
@@ -50,12 +39,6 @@ public class Texture {
             } else {
                 System.out.println("OK with reason: " + stbi_failure_reason());
             }
-
-            System.out.println("Image width: " + w.get(0));
-            System.out.println("Image height: " + h.get(0));
-            System.out.println("Image components: " + comp.get(0));
-            System.out.println("Image HDR: " + stbi_is_hdr_from_memory(imageBuffer));
-
             // Decode the image
             image = stbi_load_from_memory(imageBuffer, w, h, comp, 4);
             if (image == null) {
@@ -64,8 +47,41 @@ public class Texture {
 
             width = w.get(0);
             height = h.get(0);
+            this.id = createTexture(image);
+        }
+    }
+
+    Texture(ByteBuffer imageBuffer) throws Exception {
+        ByteBuffer buf;
+        // Load Texture file
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            IntBuffer w = stack.mallocInt(1);
+            IntBuffer h = stack.mallocInt(1);
+            IntBuffer channels = stack.mallocInt(1);
+
+            buf = stbi_load_from_memory(imageBuffer, w, h, channels, 4);
+            if (buf == null) {
+                throw new Exception("Image file not loaded: " + stbi_failure_reason());
+            }
+
+            width = w.get();
+            height = h.get();
         }
 
+        this.id = createTexture(buf);
+
+        stbi_image_free(buf);
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    private int createTexture(ByteBuffer image) {
         // Create a new OpenGL texture
         int textureId = glGenTextures();
         // Bind the texture
@@ -87,7 +103,6 @@ public class Texture {
 
         return textureId;
     }
-
 
 
     public int getId() {

@@ -11,6 +11,7 @@ out vec3 mvVertexPos;
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
 
+
 void main()
 {
     vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
