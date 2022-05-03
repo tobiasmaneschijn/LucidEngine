@@ -1,57 +1,44 @@
 package io.github.tobiasmaneschijn.lwjgl.engine.graphics;
 
-import org.lwjgl.system.MemoryStack;
-
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import org.lwjgl.system.MemoryStack;
 
-import static io.github.tobiasmaneschijn.lwjgl.utils.Utils.ioResourceToByteBuffer;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 import static org.lwjgl.stb.STBImage.*;
-import static org.lwjgl.system.MemoryStack.stackPush;
 
 public class Texture {
 
     private final int id;
-    private int width;
-    private int height;
 
-    Texture(String fileName) throws Exception {
-        ByteBuffer image;
-        ByteBuffer imageBuffer;
-        try {
-            imageBuffer = ioResourceToByteBuffer(fileName, 8 * 1024);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    private final int width;
 
-        try (MemoryStack stack = stackPush()) {
+    private final int height;
+
+    public Texture(String fileName) throws Exception {
+        ByteBuffer buf;
+        // Load Texture file
+        try (MemoryStack stack = MemoryStack.stackPush()) {
             IntBuffer w = stack.mallocInt(1);
             IntBuffer h = stack.mallocInt(1);
-            IntBuffer comp = stack.mallocInt(1);
+            IntBuffer channels = stack.mallocInt(1);
 
-            // Use info to read image metadata without decoding the entire image.
-            // We don't need this for this demo, just testing the API.
-            if (!stbi_info_from_memory(imageBuffer, w, h, comp)) {
-                throw new RuntimeException("Failed to read image information: " + stbi_failure_reason());
-            } else {
-                System.out.println("OK with reason: " + stbi_failure_reason());
-            }
-            // Decode the image
-            image = stbi_load_from_memory(imageBuffer, w, h, comp, 4);
-            if (image == null) {
-                throw new RuntimeException("Failed to load image: " + stbi_failure_reason());
+            buf = stbi_load(fileName, w, h, channels, 4);
+            if (buf == null) {
+                throw new Exception("Image file [" + fileName  + "] not loaded: " + stbi_failure_reason());
             }
 
-            width = w.get(0);
-            height = h.get(0);
-            this.id = createTexture(image);
+            width = w.get();
+            height = h.get();
         }
+
+        this.id = createTexture(buf);
+
+        stbi_image_free(buf);
     }
 
-    Texture(ByteBuffer imageBuffer) throws Exception {
+    public Texture(ByteBuffer imageBuffer) throws Exception {
         ByteBuffer buf;
         // Load Texture file
         try (MemoryStack stack = MemoryStack.stackPush()) {
@@ -73,15 +60,7 @@ public class Texture {
         stbi_image_free(buf);
     }
 
-    public int getHeight() {
-        return height;
-    }
-
-    public int getWidth() {
-        return width;
-    }
-
-    private int createTexture(ByteBuffer image) {
+    private int createTexture(ByteBuffer buf) {
         // Create a new OpenGL texture
         int textureId = glGenTextures();
         // Bind the texture
@@ -90,20 +69,28 @@ public class Texture {
         // Tell OpenGL how to unpack the RGBA bytes. Each component is 1 byte size
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
         // Upload the texture data
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
-                GL_RGBA, GL_UNSIGNED_BYTE, image);
+                GL_RGBA, GL_UNSIGNED_BYTE, buf);
         // Generate Mip Map
         glGenerateMipmap(GL_TEXTURE_2D);
-
-        stbi_image_free(image);
 
         return textureId;
     }
 
+    public int getWidth() {
+        return this.width;
+    }
+
+    public int getHeight() {
+        return this.height;
+    }
+    public void bind() {
+        glBindTexture(GL_TEXTURE_2D, id);
+    }
 
     public int getId() {
         return id;

@@ -1,15 +1,18 @@
 package io.github.tobiasmaneschijn.lwjgl.engine.graphics;
 
 import io.github.tobiasmaneschijn.lwjgl.engine.GameObject;
+import io.github.tobiasmaneschijn.lwjgl.engine.IHud;
 import io.github.tobiasmaneschijn.lwjgl.engine.Window;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.DirectionalLight;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.PointLight;
+import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.SceneLight;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.SpotLight;
 import io.github.tobiasmaneschijn.lwjgl.utils.Utils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Renderer {
@@ -19,6 +22,9 @@ public class Renderer {
     private int vaoId;
 
     private ShaderProgram shaderProgram;
+
+    private ShaderProgram hudShaderProgram;
+
 
     /**
      * Field of View in Radians
@@ -39,12 +45,23 @@ public class Renderer {
 
     private float specularPower;
 
+    private double lastTime = 0;
+    private int nbFrames = 0;
+    private double msPerFrame;
+
     public Renderer() {
         transformation = new Transformation();
         specularPower = 10f;
     }
 
     public void init(Window window) throws Exception {
+        setupSceneShader(window);
+        setupHudShader();
+        lastTime = glfwGetTime();
+       // window.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+
+    private void setupSceneShader(Window window) throws Exception {
         // Create shader
         shaderProgram = new ShaderProgram();
         shaderProgram.createVertexShader(Utils.loadResource("/shaders/default.vert"));
@@ -66,24 +83,69 @@ public class Renderer {
         shaderProgram.createPointLightListUniform("pointLights", MAX_POINT_LIGHTS);
         shaderProgram.createSpotLightListUniform("spotLights", MAX_SPOT_LIGHTS);
         shaderProgram.createDirectionalLightUniform("directionalLight");
+    }
 
+    private void setupHudShader() throws Exception {
+        hudShaderProgram = new ShaderProgram();
+        hudShaderProgram.createVertexShader(Utils.loadResource("/shaders/hud.vert"));
+        hudShaderProgram.createFragmentShader(Utils.loadResource("/shaders/hud.frag"));
+        hudShaderProgram.link();
 
-        window.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        // Create uniforms for Ortographic-model projection matrix and base colour
+        hudShaderProgram.createUniform("projModelMatrix");
+        hudShaderProgram.createUniform("colour");
+        hudShaderProgram.createUniform("hasTexture");
     }
 
     public void clear() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    public void render(Window window, Camera camera, GameObject[] gameItems, Vector3f ambientLight,
-                       PointLight[] pointLightList, SpotLight[] spotLightList, DirectionalLight directionalLight) {
+    public void render(Window window, Camera camera, GameObject[] gameItems,
+                       SceneLight sceneLight, IHud hud) {
         clear();
+
 
         if ( window.isResized() ) {
             glViewport(0, 0, window.getWidth(), window.getHeight());
             window.setResized(false);
         }
 
+        double currentTime = glfwGetTime();
+
+        nbFrames++;
+        if ( currentTime - lastTime >= .2 ) {
+            msPerFrame = 1000.0/(double)nbFrames;
+            nbFrames = 0;
+            lastTime += 1.0;
+        }
+
+        renderScene(window, camera, gameItems,sceneLight);
+        renderHud(window, hud);
+    }
+
+
+
+    private void renderHud(Window window, IHud hud) {
+        hudShaderProgram.bind();
+
+        Matrix4f ortho = transformation.getOrthoProjectionMatrix(0, window.getWidth(), window.getHeight(), 0);
+        for (GameObject gameItem : hud.getGameItems()) {
+            Mesh mesh = gameItem.getMesh();
+            // Set ortohtaphic and model matrix for this HUD item
+            Matrix4f projModelMatrix = transformation.getOrtoProjModelMatrix(gameItem, ortho);
+            hudShaderProgram.setUniform("projModelMatrix", projModelMatrix);
+            hudShaderProgram.setUniform("colour", gameItem.getMesh().getMaterial().getAmbientColour());
+            hudShaderProgram.setUniform("hasTexture", gameItem.getMesh().getMaterial().isTextured() ? 1 : 0);
+
+            // Render the mesh for this HUD item
+            mesh.render();
+        }
+
+        hudShaderProgram.unbind();
+
+    }
+    private void renderScene(Window window, Camera camera, GameObject[] gameItems, SceneLight sceneLight) {
         shaderProgram.bind();
 
         // Update projection Matrix
@@ -94,7 +156,7 @@ public class Renderer {
         Matrix4f viewMatrix = transformation.getViewMatrix(camera);
 
         // Update Light Uniforms
-        renderLights(viewMatrix, ambientLight, pointLightList, spotLightList, directionalLight);
+        renderLights(viewMatrix,sceneLight);
 
         shaderProgram.setUniform("texture_sampler", 0);
         // Render each gameItem
@@ -113,17 +175,16 @@ public class Renderer {
     }
 
 
-    private void renderLights(Matrix4f viewMatrix, Vector3f ambientLight,
-                              PointLight[] pointLightList, SpotLight[] spotLightList, DirectionalLight directionalLight) {
+    private void renderLights(Matrix4f viewMatrix, SceneLight sceneLight) {
 
-        shaderProgram.setUniform("ambientLight", ambientLight);
+        shaderProgram.setUniform("ambientLight", sceneLight.getAmbientLight());
         shaderProgram.setUniform("specularPower", specularPower);
 
         // Process Point Lights
-        int numLights = pointLightList != null ? pointLightList.length : 0;
+        int numLights = sceneLight.getPointLightList() != null ? sceneLight.getPointLightList().length : 0;
         for (int i = 0; i < numLights; i++) {
             // Get a copy of the point light object and transform its position to view coordinates
-            PointLight currPointLight = new PointLight(pointLightList[i]);
+            PointLight currPointLight = new PointLight(sceneLight.getPointLightList()[i]);
             Vector3f lightPos = currPointLight.getPosition();
             Vector4f aux = new Vector4f(lightPos, 1);
             aux.mul(viewMatrix);
@@ -134,10 +195,10 @@ public class Renderer {
         }
 
         // Process Spot Ligths
-        numLights = spotLightList != null ? spotLightList.length : 0;
+        numLights = sceneLight.getSpotLightList() != null ? sceneLight.getSpotLightList().length : 0;
         for (int i = 0; i < numLights; i++) {
             // Get a copy of the spot light object and transform its position and cone direction to view coordinates
-            SpotLight currSpotLight = new SpotLight(spotLightList[i]);
+            SpotLight currSpotLight = new SpotLight(sceneLight.getSpotLightList()[i]);
             Vector4f dir = new Vector4f(currSpotLight.getConeDirection(), 0);
             dir.mul(viewMatrix);
             currSpotLight.setConeDirection(new Vector3f(dir.x, dir.y, dir.z));
@@ -153,7 +214,7 @@ public class Renderer {
         }
 
         // Get a copy of the directional light object and transform its position to view coordinates
-        DirectionalLight currDirLight = new DirectionalLight(directionalLight);
+        DirectionalLight currDirLight = new DirectionalLight(sceneLight.getDirectionalLight());
         Vector4f dir = new Vector4f(currDirLight.getDirection(), 0);
         dir.mul(viewMatrix);
         currDirLight.setDirection(new Vector3f(dir.x, dir.y, dir.z));
@@ -165,5 +226,10 @@ public class Renderer {
         if (shaderProgram != null) {
             shaderProgram.cleanup();
         }
+    }
+
+
+    public double getMsPerFrame() {
+        return msPerFrame;
     }
 }
