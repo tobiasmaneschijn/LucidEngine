@@ -8,9 +8,9 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            boolean vSync = true;
+            boolean vSync = false;
             IGameLogic gameLogic = new DummyGame();
-            GameEngine gameEng = new GameEngine("Toby's Test Env", 600, 480, vSync, gameLogic);
+            GameEngine gameEng = new GameEngine("Toby's Test Env", 1280, 720, vSync, gameLogic);
             gameEng.run();
         } catch (Exception excp) {
             excp.printStackTrace();

@@ -36,6 +36,7 @@ public class GameEngine implements Runnable {
         }
     }
 
+
     private void cleanup() {
         gameLogic.cleanup();
     }

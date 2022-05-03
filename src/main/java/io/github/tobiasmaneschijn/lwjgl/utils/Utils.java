@@ -15,7 +15,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Scanner;
 
 import static org.lwjgl.BufferUtils.createByteBuffer;
@@ -47,9 +46,7 @@ public class Utils {
      *
      * @param resource   the resource to read
      * @param bufferSize the initial buffer size
-     *
      * @return the resource data
-     *
      * @throws IOException if an IO error occurs
      */
     public static ByteBuffer ioResourceToByteBuffer(String resource, int bufferSize) throws IOException {
@@ -58,7 +55,7 @@ public class Utils {
         Path path = Paths.get(resource);
         if (Files.isReadable(path)) {
             try (SeekableByteChannel fc = Files.newByteChannel(path)) {
-                buffer = createByteBuffer((int)fc.size() + 1);
+                buffer = createByteBuffer((int) fc.size() + 1);
                 while (fc.read(buffer) != -1) {
                     ;
                 }
@@ -95,6 +92,15 @@ public class Utils {
             }
         }
         return list;
+    }
+
+    public static float[] listToArray(List<Float> list) {
+        int size = list != null ? list.size() : 0;
+        float[] floatArr = new float[size];
+        for (int i = 0; i < size; i++) {
+            floatArr[i] = list.get(i);
+        }
+        return floatArr;
     }
 
 }
