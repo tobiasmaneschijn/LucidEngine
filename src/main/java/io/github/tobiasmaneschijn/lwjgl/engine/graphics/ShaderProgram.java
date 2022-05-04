@@ -3,6 +3,7 @@ package io.github.tobiasmaneschijn.lwjgl.engine.graphics;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.DirectionalLight;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.PointLight;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.SpotLight;
+import io.github.tobiasmaneschijn.lwjgl.engine.graphics.weather.Fog;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -136,6 +137,18 @@ public class ShaderProgram {
         createUniform(uniformName + ".specular");
         createUniform(uniformName + ".hasTexture");
         createUniform(uniformName + ".reflectance");
+    }
+
+    public void createFogUniform(String uniformName) throws Exception {
+        createUniform(uniformName + ".activeFog");
+        createUniform(uniformName + ".colour");
+        createUniform(uniformName + ".density");
+    }
+
+    public void setUniform(String uniformName, Fog fog) {
+        setUniform(uniformName + ".activeFog", fog.isActive() ? 1 : 0);
+        setUniform(uniformName + ".colour", fog.getColour() );
+        setUniform(uniformName + ".density", fog.getDensity());
     }
 
     public void setUniform(String uniformName, Matrix4f value) {

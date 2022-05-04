@@ -4,6 +4,7 @@ import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.GameObject;
 import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.SkyBox;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.Mesh;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.SceneLight;
+import io.github.tobiasmaneschijn.lwjgl.engine.graphics.weather.Fog;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,10 +17,14 @@ public class Scene {
 
     private SkyBox skyBox;
 
+    private Fog fog;
+
     private SceneLight sceneLight;
 
     public Scene() {
+
         meshMap = new HashMap();
+        fog = Fog.NOFOG;
     }
 
     public Map<Mesh, List<GameObject>> getGameMeshes() {
@@ -62,4 +67,11 @@ public class Scene {
         this.sceneLight = sceneLight;
     }
 
+    public Fog getFog() {
+        return fog;
+    }
+
+    public void setFog(Fog fog) {
+        this.fog = fog;
+    }
 }

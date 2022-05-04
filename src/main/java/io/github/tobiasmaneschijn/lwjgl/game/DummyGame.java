@@ -11,6 +11,7 @@ import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.DirectionalLight;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.PointLight;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.SceneLight;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.SpotLight;
+import io.github.tobiasmaneschijn.lwjgl.engine.graphics.weather.Fog;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
@@ -58,6 +59,7 @@ public class DummyGame implements IGameLogic {
         int textInc = 40;
         terrain = new Terrain(terrainSize, terrainScale, minY, maxY, "textures/heightmap.png", "textures/terrain.png", textInc);
         scene.setGameItems(terrain.getGameObjects());
+        scene.setFog(new Fog(true, new Vector3f(0.5f, 0.5f, 0.5f), 0.15f));
 
         // Setup  SkyBox
         SkyBox skyBox = new SkyBox("/models/skybox.obj", "textures/skybox.png");
