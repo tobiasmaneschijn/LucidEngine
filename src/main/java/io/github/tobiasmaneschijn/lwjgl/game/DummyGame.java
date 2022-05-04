@@ -17,7 +17,6 @@ import org.joml.Vector3f;
 
 import java.text.DecimalFormat;
 
-
 public class DummyGame implements IGameLogic {
 
     private static final float MOUSE_SENSITIVITY = 0.2f;
@@ -42,7 +41,7 @@ public class DummyGame implements IGameLogic {
         renderer = new Renderer();
         camera = new Camera();
         cameraInc = new Vector3f(0.0f, 0.0f, 0.0f);
-        lightAngle = -90;
+        lightAngle = -35;
     }
 
     @Override
@@ -51,31 +50,35 @@ public class DummyGame implements IGameLogic {
 
         scene = new Scene();
 
-        float skyBoxScale = 50.0f;
-        float terrainScale = 10;
-        int terrainSize = 3;
-        float minY = -0.02f;
-        float maxY = 0.02f;
-        int textInc = 40;
-        terrain = new Terrain(terrainSize, terrainScale, minY, maxY, "textures/heightmap.png", "textures/terrain.png", textInc);
-        scene.setGameItems(terrain.getGameObjects());
-        scene.setFog(new Fog(true, new Vector3f(0.5f, 0.5f, 0.5f), 0.15f));
+        // Setup  GameItems
+        float reflectance = 0.65f;
+        Texture normalMap = new Texture("textures/rock_normals.png");
 
-        // Setup  SkyBox
-        SkyBox skyBox = new SkyBox("/models/skybox.obj", "textures/skybox.png");
-        skyBox.setScale(skyBoxScale);
-        scene.setSkyBox(skyBox);
+        Mesh quadMesh1 = OBJLoader.loadMesh("/models/quad.obj");
+        Texture texture = new Texture("textures/rock.png");
+        Material quadMaterial1 = new Material(texture, reflectance);
+        quadMesh1.setMaterial(quadMaterial1);
+        GameObject quadGameItem1 = new GameObject(quadMesh1);
+        quadGameItem1.setPosition(-3f, 0, 0);
+        quadGameItem1.setScale(2.0f);
+        quadGameItem1.setRotation(90, 0, 0);
+
+        Mesh quadMesh2 = OBJLoader.loadMesh("/models/quad.obj");
+        Material quadMaterial2 = new Material(texture, reflectance);
+        quadMaterial2.setNormalMap(normalMap);
+        quadMesh2.setMaterial(quadMaterial2);
+        GameObject quadGameItem2 = new GameObject(quadMesh2);
+        quadGameItem2.setPosition(3f, 0, 0);
+        quadGameItem2.setScale(2.0f);
+        quadGameItem2.setRotation(90, 0, 0);
+
+        scene.setGameItems(new GameObject[]{quadGameItem1, quadGameItem2});
 
         // Setup Lights
         setupLights();
 
-        // Create HUD
-        hud = new Hud("DEMO");
-
-        camera.getPosition().x = 0.0f;
-        camera.getPosition().z = 0.0f;
-        camera.getPosition().y = -0.2f;
-        camera.getRotation().x = 10.f;
+        camera.getPosition().y = 5.0f;
+        camera.getRotation().x = 90;
     }
 
     private void setupLights() {
@@ -110,6 +113,17 @@ public class DummyGame implements IGameLogic {
         } else if (window.isKeyPressed(GLFW_KEY_X)) {
             cameraInc.y = 1;
         }
+        if ( window.isKeyPressed(GLFW_KEY_LEFT)) {
+            lightAngle -= 2.5f;
+            if ( lightAngle < -90 ) {
+                lightAngle = -90;
+            }
+        } else if ( window.isKeyPressed(GLFW_KEY_RIGHT)) {
+            lightAngle += 2.5f;
+            if ( lightAngle > 90 ) {
+                lightAngle = 90;
+            }
+        }
     }
 
     @Override
@@ -118,9 +132,6 @@ public class DummyGame implements IGameLogic {
         if (mouseInput.isRightButtonPressed()) {
             Vector2f rotVec = mouseInput.getDisplVec();
             camera.moveRotation(rotVec.x * MOUSE_SENSITIVITY, rotVec.y * MOUSE_SENSITIVITY, 0);
-
-            // Update HUD compass
-            hud.rotateCompass(camera.getRotation().y);
         }
 
         // Update camera position
@@ -128,34 +139,14 @@ public class DummyGame implements IGameLogic {
         camera.movePosition(cameraInc.x * CAMERA_POS_STEP, cameraInc.y * CAMERA_POS_STEP, cameraInc.z * CAMERA_POS_STEP);
         // Check if there has been a collision. If true, set the y position to
         // the maximum height
-        float height = terrain.getHeight(camera.getPosition());
-        if ( camera.getPosition().y <= height )  {
+        float height = terrain != null ? terrain.getHeight(camera.getPosition()) : -Float.MAX_VALUE;
+        if (camera.getPosition().y <= height) {
             camera.setPosition(prevPos.x, prevPos.y, prevPos.z);
         }
 
         // Update directional light direction, intensity and colour
         SceneLight sceneLight = scene.getSceneLight();
         DirectionalLight directionalLight = sceneLight.getDirectionalLight();
-        lightAngle += 0.5f;
-        if (lightAngle > 90) {
-            directionalLight.setIntensity(0);
-            if (lightAngle >= 360) {
-                lightAngle = -90;
-            }
-            sceneLight.getSkyBoxLight().set(0.3f, 0.3f, 0.3f);
-        } else if (lightAngle <= -80 || lightAngle >= 80) {
-            float factor = 1 - (float) (Math.abs(lightAngle) - 80) / 10.0f;
-            sceneLight.getSkyBoxLight().set(factor, factor, factor);
-            directionalLight.setIntensity(factor);
-            directionalLight.getColor().y = Math.max(factor, 0.9f);
-            directionalLight.getColor().z = Math.max(factor, 0.5f);
-        } else {
-            sceneLight.getSkyBoxLight().set(1.0f, 1.0f, 1.0f);
-            directionalLight.setIntensity(1);
-            directionalLight.getColor().x = 1;
-            directionalLight.getColor().y = 1;
-            directionalLight.getColor().z = 1;
-        }
         double angRad = Math.toRadians(lightAngle);
         directionalLight.getDirection().x = (float) Math.sin(angRad);
         directionalLight.getDirection().y = (float) Math.cos(angRad);
@@ -163,7 +154,9 @@ public class DummyGame implements IGameLogic {
 
     @Override
     public void render(Window window) {
-        hud.updateSize(window);
+        if (hud != null) {
+            hud.updateSize(window);
+        }
         renderer.render(window, camera, scene, hud);
     }
 
@@ -171,8 +164,9 @@ public class DummyGame implements IGameLogic {
     public void cleanup() {
         renderer.cleanup();
         scene.cleanup();
-        if (hud != null) {
+        if ( hud != null ) {
             hud.cleanup();
         }
     }
+
 }
