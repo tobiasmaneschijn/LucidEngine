@@ -1,11 +1,13 @@
 package io.github.tobiasmaneschijn.lwjgl.engine.graphics;
 
+import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.GameObject;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
@@ -30,7 +32,6 @@ import static org.lwjgl.opengl.GL30.glDeleteVertexArrays;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class Mesh {
-
     private final int vaoId;
 
     private final List<Integer> vboIdList;
@@ -75,7 +76,12 @@ public class Mesh {
             vboId = glGenBuffers();
             vboIdList.add(vboId);
             vecNormalsBuffer = MemoryUtil.memAllocFloat(normals.length);
-            vecNormalsBuffer.put(normals).flip();
+            if (vecNormalsBuffer.capacity() > 0) {
+                vecNormalsBuffer.put(normals).flip();
+            } else {
+                // Create empty structure
+                vecNormalsBuffer = MemoryUtil.memAllocFloat(positions.length);
+            }
             glBindBuffer(GL_ARRAY_BUFFER, vboId);
             glBufferData(GL_ARRAY_BUFFER, vecNormalsBuffer, GL_STATIC_DRAW);
             glEnableVertexAttribArray(2);
@@ -123,7 +129,7 @@ public class Mesh {
         return vertexCount;
     }
 
-    public void render() {
+    private void initRender() {
         Texture texture = material.getTexture();
         if (texture != null) {
             // Activate firs texture bank
@@ -134,12 +140,34 @@ public class Mesh {
 
         // Draw the mesh
         glBindVertexArray(getVaoId());
+    }
+
+    private void endRender() {
+        // Restore state
+        glBindVertexArray(0);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    public void render() {
+        initRender();
 
         glDrawElements(GL_TRIANGLES, getVertexCount(), GL_UNSIGNED_INT, 0);
 
-        // Restore state
-        glBindVertexArray(0);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        endRender();
+    }
+
+    public void renderList(List<GameObject> gameItems, Consumer<GameObject> consumer) {
+        initRender();
+
+        for (GameObject gameItem : gameItems) {
+            // Set up data required by GameItem
+            consumer.accept(gameItem);
+            // Render this game item
+            glDrawElements(GL_TRIANGLES, getVertexCount(), GL_UNSIGNED_INT, 0);
+        }
+
+        endRender();
     }
 
     public void cleanUp() {

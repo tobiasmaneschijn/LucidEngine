@@ -1,8 +1,10 @@
 package io.github.tobiasmaneschijn.lwjgl.engine.graphics;
 
+import io.github.tobiasmaneschijn.lwjgl.engine.Scene;
 import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.GameObject;
 import io.github.tobiasmaneschijn.lwjgl.engine.IHud;
 import io.github.tobiasmaneschijn.lwjgl.engine.Window;
+import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.SkyBox;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.DirectionalLight;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.PointLight;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.SceneLight;
@@ -11,6 +13,9 @@ import io.github.tobiasmaneschijn.lwjgl.utils.Utils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+
+import java.util.List;
+import java.util.Map;
 
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL11.*;
@@ -57,8 +62,8 @@ public class Renderer {
     }
 
     public void init(Window window) throws Exception {
-        setupSceneShader(window);
         setupSkyBoxShader();
+        setupSceneShader(window);
         setupHudShader();
         lastTime = glfwGetTime();
        // window.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -90,8 +95,8 @@ public class Renderer {
 
     private void setupSkyBoxShader() throws Exception {
         skyBoxShaderProgram = new ShaderProgram();
-        skyBoxShaderProgram.createVertexShader(Utils.loadResource("/shaders/sb_vertex.vs"));
-        skyBoxShaderProgram.createFragmentShader(Utils.loadResource("/shaders/sb_fragment.fs"));
+        skyBoxShaderProgram.createVertexShader(Utils.loadResource("/shaders/skybox.vert"));
+        skyBoxShaderProgram.createFragmentShader(Utils.loadResource("/shaders/skybox.frag"));
         skyBoxShaderProgram.link();
 
         skyBoxShaderProgram.createUniform("projectionMatrix");
@@ -116,8 +121,7 @@ public class Renderer {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    public void render(Window window, Camera camera, GameObject[] gameItems,
-                       SceneLight sceneLight, IHud hud) {
+    public void render(Window window, Camera camera, Scene scene, IHud hud) {
         clear();
 
 
@@ -135,10 +139,34 @@ public class Renderer {
             lastTime += 1.0;
         }
 
-        renderScene(window, camera, gameItems,sceneLight);
+        renderScene(window, camera, scene);
+
+        renderSkyBox(window, camera, scene);
+
         renderHud(window, hud);
     }
 
+
+    private void renderSkyBox(Window window, Camera camera, Scene scene) {
+        skyBoxShaderProgram.bind();
+
+        skyBoxShaderProgram.setUniform("texture_sampler", 0);
+
+        Matrix4f projectionMatrix = transformation.getProjectionMatrix();
+        skyBoxShaderProgram.setUniform("projectionMatrix", projectionMatrix);
+        SkyBox skyBox = scene.getSkyBox();
+        Matrix4f viewMatrix = transformation.getViewMatrix();
+        viewMatrix.m30(0);
+        viewMatrix.m31(0);
+        viewMatrix.m32(0);
+        Matrix4f modelViewMatrix = transformation.buildModelViewMatrix(skyBox, viewMatrix);
+        skyBoxShaderProgram.setUniform("modelViewMatrix", modelViewMatrix);
+        skyBoxShaderProgram.setUniform("ambientLight", scene.getSceneLight().getSkyBoxLight());
+
+        scene.getSkyBox().getMesh().render();
+
+        skyBoxShaderProgram.unbind();
+    }
 
 
     private void renderHud(Window window, IHud hud) {
@@ -148,7 +176,7 @@ public class Renderer {
         for (GameObject gameItem : hud.getGameItems()) {
             Mesh mesh = gameItem.getMesh();
             // Set ortohtaphic and model matrix for this HUD item
-            Matrix4f projModelMatrix = transformation.getOrtoProjModelMatrix(gameItem, ortho);
+            Matrix4f projModelMatrix = transformation.buildOrthoProjModelMatrix(gameItem, ortho);
             hudShaderProgram.setUniform("projModelMatrix", projModelMatrix);
             hudShaderProgram.setUniform("colour", gameItem.getMesh().getMaterial().getAmbientColour());
             hudShaderProgram.setUniform("hasTexture", gameItem.getMesh().getMaterial().isTextured() ? 1 : 0);
@@ -160,31 +188,28 @@ public class Renderer {
         hudShaderProgram.unbind();
 
     }
-    private void renderScene(Window window, Camera camera, GameObject[] gameItems, SceneLight sceneLight) {
+    private void renderScene(Window window, Camera camera, Scene scene) {
         shaderProgram.bind();
 
-        // Update projection Matrix
-        Matrix4f projectionMatrix = transformation.getProjectionMatrix(FOV, window.getWidth(), window.getHeight(), Z_NEAR, Z_FAR);
+        Matrix4f projectionMatrix = transformation.getProjectionMatrix();
         shaderProgram.setUniform("projectionMatrix", projectionMatrix);
 
-        // Update view Matrix
-        Matrix4f viewMatrix = transformation.getViewMatrix(camera);
+        Matrix4f viewMatrix = transformation.getViewMatrix();
 
-        // Update Light Uniforms
-        renderLights(viewMatrix,sceneLight);
+        SceneLight sceneLight = scene.getSceneLight();
+        renderLights(viewMatrix, sceneLight);
 
         shaderProgram.setUniform("texture_sampler", 0);
-        // Render each gameItem
-        for (GameObject gameItem : gameItems) {
-            Mesh mesh = gameItem.getMesh();
-            // Set model view matrix for this item
-            Matrix4f modelViewMatrix = transformation.getModelViewMatrix(gameItem, viewMatrix);
-            shaderProgram.setUniform("modelViewMatrix", modelViewMatrix);
-            // Render the mesh for this game item
+        // Render each mesh with the associated game Items
+        Map<Mesh, List<GameObject>> mapMeshes = scene.getGameMeshes();
+        for (Mesh mesh : mapMeshes.keySet()) {
             shaderProgram.setUniform("material", mesh.getMaterial());
-            mesh.render();
+            mesh.renderList(mapMeshes.get(mesh), (GameObject gameItem) -> {
+                        Matrix4f modelViewMatrix = transformation.buildModelViewMatrix(gameItem, viewMatrix);
+                        shaderProgram.setUniform("modelViewMatrix", modelViewMatrix);
+                    }
+            );
         }
-
 
         shaderProgram.unbind();
     }
@@ -192,14 +217,16 @@ public class Renderer {
 
     private void renderLights(Matrix4f viewMatrix, SceneLight sceneLight) {
 
+
         shaderProgram.setUniform("ambientLight", sceneLight.getAmbientLight());
         shaderProgram.setUniform("specularPower", specularPower);
 
         // Process Point Lights
-        int numLights = sceneLight.getPointLightList() != null ? sceneLight.getPointLightList().length : 0;
+        PointLight[] pointLightList = sceneLight.getPointLightList();
+        int numLights = pointLightList != null ? pointLightList.length : 0;
         for (int i = 0; i < numLights; i++) {
             // Get a copy of the point light object and transform its position to view coordinates
-            PointLight currPointLight = new PointLight(sceneLight.getPointLightList()[i]);
+            PointLight currPointLight = new PointLight(pointLightList[i]);
             Vector3f lightPos = currPointLight.getPosition();
             Vector4f aux = new Vector4f(lightPos, 1);
             aux.mul(viewMatrix);
@@ -210,15 +237,16 @@ public class Renderer {
         }
 
         // Process Spot Ligths
-        numLights = sceneLight.getSpotLightList() != null ? sceneLight.getSpotLightList().length : 0;
+        SpotLight[] spotLightList = sceneLight.getSpotLightList();
+        numLights = spotLightList != null ? spotLightList.length : 0;
         for (int i = 0; i < numLights; i++) {
             // Get a copy of the spot light object and transform its position and cone direction to view coordinates
-            SpotLight currSpotLight = new SpotLight(sceneLight.getSpotLightList()[i]);
+            SpotLight currSpotLight = new SpotLight(spotLightList[i]);
             Vector4f dir = new Vector4f(currSpotLight.getConeDirection(), 0);
             dir.mul(viewMatrix);
             currSpotLight.setConeDirection(new Vector3f(dir.x, dir.y, dir.z));
-            Vector3f lightPos = currSpotLight.getPointLight().getPosition();
 
+            Vector3f lightPos = currSpotLight.getPointLight().getPosition();
             Vector4f aux = new Vector4f(lightPos, 1);
             aux.mul(viewMatrix);
             lightPos.x = aux.x;
@@ -238,8 +266,14 @@ public class Renderer {
     }
 
     public void cleanup() {
+        if (skyBoxShaderProgram != null) {
+            skyBoxShaderProgram.cleanup();
+        }
         if (shaderProgram != null) {
             shaderProgram.cleanup();
+        }
+        if (hudShaderProgram != null) {
+            hudShaderProgram.cleanup();
         }
     }
 
