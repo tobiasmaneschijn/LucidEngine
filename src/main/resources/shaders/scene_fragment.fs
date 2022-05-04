@@ -6,6 +6,7 @@ const int MAX_SPOT_LIGHTS = 5;
 in vec2 outTexCoord;
 in vec3 mvVertexNormal;
 in vec3 mvVertexPos;
+in vec4 mlightviewVertexPos;
 in mat4 outModelViewMatrix;
 
 out vec4 fragColor;
@@ -20,7 +21,7 @@ struct Attenuation
 struct PointLight
 {
     vec3 colour;
-    // Light position is assumed to be in view coordinates
+// Light position is assumed to be in view coordinates
     vec3 position;
     float intensity;
     Attenuation att;
@@ -66,6 +67,7 @@ uniform PointLight pointLights[MAX_POINT_LIGHTS];
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 uniform DirectionalLight directionalLight;
 uniform Fog fog;
+uniform sampler2D shadowMap;
 
 vec4 ambientC;
 vec4 diffuseC;
@@ -116,7 +118,7 @@ vec4 calcPointLight(PointLight light, vec3 position, vec3 normal)
     // Apply Attenuation
     float distance = length(light_direction);
     float attenuationInv = light.att.constant + light.att.linear * distance +
-        light.att.exponent * distance * distance;
+    light.att.exponent * distance * distance;
     return light_colour / attenuationInv;
 }
 
@@ -165,6 +167,36 @@ vec3 calcNormal(Material material, vec3 normal, vec2 text_coord, mat4 modelViewM
     return newNormal;
 }
 
+float calcShadow(vec4 position)
+{
+    // solving peter panning effect by using a bias
+    float shadowFactor = 0.0;
+    vec3 projCoords = position.xyz;
+    projCoords = projCoords * 0.5 + 0.5;
+    vec2 inc = 1.0 / textureSize(shadowMap, 0);
+
+    float bias = 0.05;
+
+
+
+    for(int row = -1; row <= 1; ++row)
+    {
+        for(int col = -1; col <= 1; ++col)
+        {
+            float textDepth = texture(shadowMap, projCoords.xy + vec2(row, col) * inc).r;
+            shadowFactor += projCoords.z - bias > textDepth ? 1.0 : 0.0;
+        }
+    }
+    shadowFactor /= 9.0;
+
+    if(projCoords.z > 1.0)
+    {
+        shadowFactor = 1.0;
+    }
+
+    return 1 - shadowFactor;
+}
+
 void main()
 {
     setupColours(material, outTexCoord);
@@ -189,7 +221,8 @@ void main()
         }
     }
 
-    fragColor = clamp(ambientC * vec4(ambientLight, 1) + diffuseSpecularComp, 0, 1);
+    float shadow = calcShadow(mlightviewVertexPos);
+    fragColor = clamp(ambientC * vec4(ambientLight, 1) + diffuseSpecularComp * shadow, 0, 1);
 
     if ( fog.activeFog == 1 )
     {

@@ -15,12 +15,12 @@ public class ShadowMap {
     /**
      * The shadow map texture width.
      */
-    public static final int SHADOW_MAP_WIDTH = 1024;
+    public static final int SHADOW_MAP_WIDTH = 2048;
 
     /**
      * The shadow map texture height.
      */
-    public static final int SHADOW_MAP_HEIGHT = 1024;
+    public static final int SHADOW_MAP_HEIGHT = 2048;
 
     private final int depthMapFBO;
 
