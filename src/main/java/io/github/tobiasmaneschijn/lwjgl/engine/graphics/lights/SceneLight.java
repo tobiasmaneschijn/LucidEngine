@@ -1,10 +1,13 @@
 package io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights;
 
+import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.SkyBox;
 import org.joml.Vector3f;
 
 public class SceneLight {
 
     private Vector3f ambientLight;
+
+    private Vector3f skyBoxLight;
 
     private PointLight[] pointLightList;
 
@@ -44,4 +47,11 @@ public class SceneLight {
         this.directionalLight = directionalLight;
     }
 
+    public Vector3f getSkyBoxLight() {
+        return skyBoxLight;
+    }
+
+    public void setSkyBoxLight(Vector3f skyBoxLight) {
+        this.skyBoxLight = skyBoxLight;
+    }
 }

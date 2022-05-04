@@ -1,4 +1,4 @@
-package io.github.tobiasmaneschijn.lwjgl.engine;
+package io.github.tobiasmaneschijn.lwjgl.engine.gameobjects;
 
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.Mesh;
 import org.joml.Vector3f;

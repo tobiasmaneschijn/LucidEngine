@@ -2,6 +2,7 @@ package io.github.tobiasmaneschijn.lwjgl.engine.graphics;
 
 import org.joml.Vector4f;
 
+
 public class Material {
 
     private static final Vector4f DEFAULT_COLOUR = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -15,6 +16,8 @@ public class Material {
     private float reflectance;
 
     private Texture texture;
+
+    private Texture normalMap;
 
     public Material() {
         this.ambientColour = DEFAULT_COLOUR;
@@ -88,4 +91,15 @@ public class Material {
         this.texture = texture;
     }
 
+    public boolean hasNormalMap() {
+        return this.normalMap != null;
+    }
+
+    public Texture getNormalMap() {
+        return normalMap;
+    }
+
+    public void setNormalMap(Texture normalMap) {
+        this.normalMap = normalMap;
+    }
 }
