@@ -2,6 +2,7 @@ package io.github.tobiasmaneschijn.lwjgl.engine.graphics;
 
 import org.joml.Vector4f;
 
+
 public class Material {
 
     private static final Vector4f DEFAULT_COLOUR = new Vector4f(1.0f, 1.0f, 1.0f, 1.0f);

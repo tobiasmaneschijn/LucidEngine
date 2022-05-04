@@ -17,9 +17,9 @@ public class HeightMapMesh {
 
     private static final int MAX_COLOUR = 255 * 255 * 255;
 
-    private static final float STARTX = -0.5f;
+    public static final float STARTX = -0.5f;
 
-    private static final float STARTZ = -0.5f;
+    public static final float STARTZ = -0.5f;
 
     private final float minY;
 
@@ -27,26 +27,13 @@ public class HeightMapMesh {
 
     private final Mesh mesh;
 
-    public HeightMapMesh(float minY, float maxY, String heightMapFile, String textureFile, int textInc) throws Exception {
+    private final float[][] heightArray;
+
+    public HeightMapMesh(float minY, float maxY, ByteBuffer heightMapImage, int width, int height, String textureFile, int textInc) throws Exception {
         this.minY = minY;
         this.maxY = maxY;
 
-        ByteBuffer buf = null;
-        int width;
-        int height;
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            IntBuffer w = stack.mallocInt(1);
-            IntBuffer h = stack.mallocInt(1);
-            IntBuffer channels = stack.mallocInt(1);
-
-            buf = stbi_load(heightMapFile, w, h, channels, 4);
-            if (buf == null) {
-                throw new Exception("Image file [" + heightMapFile  + "] not loaded: " + stbi_failure_reason());
-            }
-
-            width = w.get();
-            height = h.get();
-        }
+        heightArray = new float[height][width];
 
         Texture texture = new Texture(textureFile);
 
@@ -61,7 +48,9 @@ public class HeightMapMesh {
             for (int col = 0; col < width; col++) {
                 // Create vertex for current position
                 positions.add(STARTX + col * incx); // x
-                positions.add(getHeight(col, row, width, buf)); //y
+                float currentHeight = getHeight(col, row, width, heightMapImage);
+                heightArray[row][col] = currentHeight;
+                positions.add(currentHeight); //y
                 positions.add(STARTZ + row * incz); //z
 
                 // Set texture coordinates
@@ -75,13 +64,13 @@ public class HeightMapMesh {
                     int rightBottom = (row + 1) * width + col + 1;
                     int rightTop = row * width + col + 1;
 
-                    indices.add(leftTop);
-                    indices.add(leftBottom);
-                    indices.add(rightTop);
-
                     indices.add(rightTop);
                     indices.add(leftBottom);
                     indices.add(rightBottom);
+
+                    indices.add(leftTop);
+                    indices.add(leftBottom);
+                    indices.add(rightTop);
                 }
             }
         }
@@ -92,20 +81,28 @@ public class HeightMapMesh {
         this.mesh = new Mesh(posArr, textCoordsArr, normalsArr, indicesArr);
         Material material = new Material(texture, 0.0f);
         mesh.setMaterial(material);
-
-        stbi_image_free(buf);
     }
 
     public Mesh getMesh() {
         return mesh;
     }
 
+    public float getHeight(int row, int col) {
+        float result = 0;
+        if ( row >= 0 && row < heightArray.length ) {
+            if ( col >= 0 && col < heightArray[row].length ) {
+                result = heightArray[row][col];
+            }
+        }
+        return result;
+    }
+
     public static float getXLength() {
-        return Math.abs(-STARTX * 2);
+        return Math.abs(-STARTX*2);
     }
 
     public static float getZLength() {
-        return Math.abs(-STARTZ * 2);
+        return Math.abs(-STARTZ*2);
     }
 
     private float[] calcNormals(float[] posArr, int width, int height) {
@@ -122,31 +119,31 @@ public class HeightMapMesh {
         Vector3f normal = new Vector3f();
         for (int row = 0; row < height; row++) {
             for (int col = 0; col < width; col++) {
-                if (row > 0 && row < height - 1 && col > 0 && col < width - 1) {
-                    int i0 = row * width * 3 + col * 3;
+                if (row > 0 && row < height -1 && col > 0 && col < width -1) {
+                    int i0 = row*width*3 + col*3;
                     v0.x = posArr[i0];
                     v0.y = posArr[i0 + 1];
                     v0.z = posArr[i0 + 2];
 
-                    int i1 = row * width * 3 + (col - 1) * 3;
+                    int i1 = row*width*3 + (col-1)*3;
                     v1.x = posArr[i1];
                     v1.y = posArr[i1 + 1];
                     v1.z = posArr[i1 + 2];
                     v1 = v1.sub(v0);
 
-                    int i2 = (row + 1) * width * 3 + col * 3;
+                    int i2 = (row+1)*width*3 + col*3;
                     v2.x = posArr[i2];
                     v2.y = posArr[i2 + 1];
                     v2.z = posArr[i2 + 2];
                     v2 = v2.sub(v0);
 
-                    int i3 = (row) * width * 3 + (col + 1) * 3;
+                    int i3 = (row)*width*3 + (col+1)*3;
                     v3.x = posArr[i3];
                     v3.y = posArr[i3 + 1];
                     v3.z = posArr[i3 + 2];
                     v3 = v3.sub(v0);
 
-                    int i4 = (row - 1) * width * 3 + col * 3;
+                    int i4 = (row-1)*width*3 + col*3;
                     v4.x = posArr[i4];
                     v4.y = posArr[i4 + 1];
                     v4.z = posArr[i4 + 2];

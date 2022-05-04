@@ -35,6 +35,8 @@ public class DummyGame implements IGameLogic {
 
     private static final float CAMERA_POS_STEP = 0.05f;
 
+    private Terrain terrain;
+
     public DummyGame() {
         renderer = new Renderer();
         camera = new Camera();
@@ -51,10 +53,10 @@ public class DummyGame implements IGameLogic {
         float skyBoxScale = 50.0f;
         float terrainScale = 10;
         int terrainSize = 3;
-        float minY = -0.1f;
-        float maxY = 0.1f;
+        float minY = -0.02f;
+        float maxY = 0.02f;
         int textInc = 40;
-        Terrain terrain = new Terrain(terrainSize, terrainScale, minY, maxY, "textures/heightmap.png", "textures/terrain.png", textInc);
+        terrain = new Terrain(terrainSize, terrainScale, minY, maxY, "textures/heightmap.png", "textures/terrain.png", textInc);
         scene.setGameItems(terrain.getGameObjects());
 
         // Setup  SkyBox
@@ -120,7 +122,14 @@ public class DummyGame implements IGameLogic {
         }
 
         // Update camera position
+        Vector3f prevPos = new Vector3f(camera.getPosition());
         camera.movePosition(cameraInc.x * CAMERA_POS_STEP, cameraInc.y * CAMERA_POS_STEP, cameraInc.z * CAMERA_POS_STEP);
+        // Check if there has been a collision. If true, set the y position to
+        // the maximum height
+        float height = terrain.getHeight(camera.getPosition());
+        if ( camera.getPosition().y <= height )  {
+            camera.setPosition(prevPos.x, prevPos.y, prevPos.z);
+        }
 
         // Update directional light direction, intensity and colour
         SceneLight sceneLight = scene.getSceneLight();
