@@ -1,5 +1,7 @@
 package io.github.tobiasmaneschijn.lwjgl.engine;
 
+import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.GameObject;
+
 public interface IHud {
 
     GameObject[] getGameItems();

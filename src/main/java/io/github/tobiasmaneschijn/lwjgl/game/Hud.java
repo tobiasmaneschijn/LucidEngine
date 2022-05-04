@@ -1,8 +1,9 @@
 package io.github.tobiasmaneschijn.lwjgl.game;
 
-import io.github.tobiasmaneschijn.lwjgl.engine.GameObject;
+import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.GameObject;
 import io.github.tobiasmaneschijn.lwjgl.engine.IHud;
 import io.github.tobiasmaneschijn.lwjgl.engine.Window;
+import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.TextItem;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.*;
 import org.joml.Vector4f;
 

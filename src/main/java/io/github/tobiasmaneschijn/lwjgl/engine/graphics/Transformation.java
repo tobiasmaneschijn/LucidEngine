@@ -1,7 +1,7 @@
 package io.github.tobiasmaneschijn.lwjgl.engine.graphics;
 
 
-import io.github.tobiasmaneschijn.lwjgl.engine.GameObject;
+import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.GameObject;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 

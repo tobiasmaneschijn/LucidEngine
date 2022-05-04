@@ -1,9 +1,10 @@
-package io.github.tobiasmaneschijn.lwjgl.engine.graphics;
+package io.github.tobiasmaneschijn.lwjgl.engine.gameobjects;
 
-import io.github.tobiasmaneschijn.lwjgl.engine.GameObject;
+import io.github.tobiasmaneschijn.lwjgl.engine.graphics.FontTexture;
+import io.github.tobiasmaneschijn.lwjgl.engine.graphics.Material;
+import io.github.tobiasmaneschijn.lwjgl.engine.graphics.Mesh;
 import io.github.tobiasmaneschijn.lwjgl.utils.Utils;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 

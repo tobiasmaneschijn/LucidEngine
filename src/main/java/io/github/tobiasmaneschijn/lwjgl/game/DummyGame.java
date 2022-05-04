@@ -3,6 +3,7 @@ package io.github.tobiasmaneschijn.lwjgl.game;
 import static org.lwjgl.glfw.GLFW.*;
 
 import io.github.tobiasmaneschijn.lwjgl.engine.*;
+import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.GameObject;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.*;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.DirectionalLight;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.PointLight;

@@ -1,6 +1,6 @@
 package io.github.tobiasmaneschijn.lwjgl.engine.graphics;
 
-import io.github.tobiasmaneschijn.lwjgl.engine.GameObject;
+import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.GameObject;
 import io.github.tobiasmaneschijn.lwjgl.engine.IHud;
 import io.github.tobiasmaneschijn.lwjgl.engine.Window;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.DirectionalLight;
@@ -22,6 +22,8 @@ public class Renderer {
     private int vaoId;
 
     private ShaderProgram shaderProgram;
+
+    private ShaderProgram skyBoxShaderProgram;
 
     private ShaderProgram hudShaderProgram;
 
@@ -56,6 +58,7 @@ public class Renderer {
 
     public void init(Window window) throws Exception {
         setupSceneShader(window);
+        setupSkyBoxShader();
         setupHudShader();
         lastTime = glfwGetTime();
        // window.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -83,6 +86,18 @@ public class Renderer {
         shaderProgram.createPointLightListUniform("pointLights", MAX_POINT_LIGHTS);
         shaderProgram.createSpotLightListUniform("spotLights", MAX_SPOT_LIGHTS);
         shaderProgram.createDirectionalLightUniform("directionalLight");
+    }
+
+    private void setupSkyBoxShader() throws Exception {
+        skyBoxShaderProgram = new ShaderProgram();
+        skyBoxShaderProgram.createVertexShader(Utils.loadResource("/shaders/sb_vertex.vs"));
+        skyBoxShaderProgram.createFragmentShader(Utils.loadResource("/shaders/sb_fragment.fs"));
+        skyBoxShaderProgram.link();
+
+        skyBoxShaderProgram.createUniform("projectionMatrix");
+        skyBoxShaderProgram.createUniform("modelViewMatrix");
+        skyBoxShaderProgram.createUniform("texture_sampler");
+        skyBoxShaderProgram.createUniform("ambientLight");
     }
 
     private void setupHudShader() throws Exception {
