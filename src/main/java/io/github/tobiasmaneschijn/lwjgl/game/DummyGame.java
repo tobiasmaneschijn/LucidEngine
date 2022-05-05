@@ -17,6 +17,9 @@ import org.joml.Vector4f;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT;
+
 public class DummyGame implements IGameLogic {
 
     private static final int OFFSET = 2;
@@ -26,6 +29,8 @@ public class DummyGame implements IGameLogic {
     private Scene scene;
     private Hud hud;
     private PlayerController playerController;
+    private float lightAngle;
+    private float lightinc;
 
 
     public DummyGame() {
@@ -80,8 +85,8 @@ public class DummyGame implements IGameLogic {
     private void buildPieces( List<GameObject> gameObjects) throws Exception {
 
         // Create material for the white pieces
-        Material mat2 = new Material(new Vector4f(1f, 1f, 1f, 1.0f), 0);
-        Material mat1 = new Material(new Vector4f(0.1f, 0.1f, 0.1f, 1.0f), 0);
+        Material mat2 = new Material(new Vector4f(.75f, .75f, .75f, 1.0f), 0);
+        Material mat1 = new Material(new Vector4f(0.25f, 0.25f, 0.25f, 1.0f), 0);
 
         // Load the pieces
         Mesh kingBMesh = StaticMeshLoader.load("models/chess/king.obj", "")[0];
@@ -231,8 +236,8 @@ public class DummyGame implements IGameLogic {
         float lightIntensity = 1.0f;
         Vector3f lightDirection = new Vector3f(0, 1, 1);
         DirectionalLight directionalLight = new DirectionalLight(new Vector3f(1, 1, 1), lightDirection, lightIntensity);
-        directionalLight.setShadowPosMult(5);
-        directionalLight.setOrthoCords(-40.0f, 40.0f, -40.0f, 40.0f, -1.0f, 100.0f);
+        directionalLight.setShadowPosMult(10);
+        directionalLight.setOrthoCords(-10.0f, 10.0f, -10.0f, 10.0f, -1.0f, 20.0f);
         sceneLight.setDirectionalLight(directionalLight);
 
     }
@@ -240,11 +245,32 @@ public class DummyGame implements IGameLogic {
     @Override
     public void input(Window window, MouseInput mouseInput) {
         playerController.input(window, mouseInput);
+        if (window.isKeyPressed(GLFW_KEY_LEFT)) {
+            lightinc -= 0.05f;
+        } else if (window.isKeyPressed(GLFW_KEY_RIGHT)) {
+            lightinc += 0.05f;
+        } else {
+            lightinc = 0;
+        }
     }
 
     @Override
     public void update(float interval, MouseInput mouseInput) {
          playerController.update(interval, mouseInput);
+
+        lightAngle += lightinc;
+        if (lightAngle < 0) {
+            lightAngle = 0;
+        } else if (lightAngle > 180) {
+            lightAngle = 180;
+        }
+        float zValue = (float) Math.cos(Math.toRadians(lightAngle));
+        float yValue = (float) Math.sin(Math.toRadians(lightAngle));
+        Vector3f lightDirection = this.scene.getSceneLight().getDirectionalLight().getDirection();
+        lightDirection.x = 0;
+        lightDirection.y = yValue;
+        lightDirection.z = zValue;
+        lightDirection.normalize();
     }
 
     @Override
