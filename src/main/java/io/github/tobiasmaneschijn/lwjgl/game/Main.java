@@ -3,14 +3,15 @@ package io.github.tobiasmaneschijn.lwjgl.game;
 
 import io.github.tobiasmaneschijn.lwjgl.engine.GameEngine;
 import io.github.tobiasmaneschijn.lwjgl.engine.IGameLogic;
+import io.github.tobiasmaneschijn.lwjgl.engine.Window;
 
 public class Main {
-
     public static void main(String[] args) {
         try {
-            boolean vSync = false;
+            boolean vSync = true;
             IGameLogic gameLogic = new DummyGame();
-            GameEngine gameEng = new GameEngine("Toby's Test Env", 1280, 720, vSync, gameLogic);
+            Window.WindowOptions opts = new Window.WindowOptions();
+            GameEngine gameEng = new GameEngine("GAME", vSync, opts, gameLogic);
             gameEng.run();
         } catch (Exception excp) {
             excp.printStackTrace();
