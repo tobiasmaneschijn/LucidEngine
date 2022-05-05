@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Start Game" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="io.github.tobiasmaneschijn.lwjgl.game.Main" />
+    <module name="JavaGame" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="io.github.tobiasmaneschijn.lwjgl.game.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
