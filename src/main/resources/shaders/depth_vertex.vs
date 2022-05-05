@@ -8,6 +8,6 @@ uniform mat4 modelLightViewMatrix;
 uniform mat4 orthoProjectionMatrix;
 
 void main()
-    {
+{
     gl_Position = orthoProjectionMatrix * modelLightViewMatrix * vec4(position, 1.0f);
 }

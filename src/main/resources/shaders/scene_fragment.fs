@@ -169,16 +169,13 @@ vec3 calcNormal(Material material, vec3 normal, vec2 text_coord, mat4 modelViewM
 
 float calcShadow(vec4 position)
 {
-    // solving peter panning effect by using a bias
-    float shadowFactor = 0.0;
     vec3 projCoords = position.xyz;
+    // Transform from screen coordinates to texture coordinates
     projCoords = projCoords * 0.5 + 0.5;
-    vec2 inc = 1.0 / textureSize(shadowMap, 0);
-
     float bias = 0.05;
 
-
-
+    float shadowFactor = 0.0;
+    vec2 inc = 1.0 / textureSize(shadowMap, 0);
     for(int row = -1; row <= 1; ++row)
     {
         for(int col = -1; col <= 1; ++col)

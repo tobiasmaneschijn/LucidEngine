@@ -5,6 +5,7 @@ import io.github.tobiasmaneschijn.lwjgl.engine.IHud;
 import io.github.tobiasmaneschijn.lwjgl.engine.Window;
 import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.TextItem;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.*;
+import io.github.tobiasmaneschijn.lwjgl.utils.loaders.obj.OBJLoader;
 import org.joml.Vector4f;
 
 import java.awt.*;

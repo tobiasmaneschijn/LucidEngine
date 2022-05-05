@@ -5,45 +5,38 @@ import org.joml.Vector3f;
 
 public class GameObject {
 
-    private Mesh mesh;
+    private Mesh[] meshes;
 
     private final Vector3f position;
 
-    private final Vector3f rotation;
-
     private float scale;
 
+    private final Vector3f rotation;
+
     public GameObject() {
-        position = new Vector3f();
+        position = new Vector3f(0, 0, 0);
         scale = 1;
-        rotation = new Vector3f();
+        rotation = new Vector3f(0, 0, 0);
     }
 
     public GameObject(Mesh mesh) {
         this();
-        this.mesh = mesh;
+        this.meshes = new Mesh[]{mesh};
     }
+
+    public GameObject(Mesh[] meshes) {
+        this();
+        this.meshes = meshes;
+    }
+
     public Vector3f getPosition() {
         return position;
     }
 
-    public void setPosition(Vector3f position) {
-        this.position.set(position);
-    }
     public void setPosition(float x, float y, float z) {
-        this.position.set(x, y, z);
-    }
-
-    public Vector3f getRotation() {
-        return rotation;
-    }
-
-    public void setRotation(Vector3f rotation) {
-        this.rotation.set(rotation);
-    }
-
-    public void setRotation(float x, float y, float z) {
-        this.rotation.set(x, y, z);
+        this.position.x = x;
+        this.position.y = y;
+        this.position.z = z;
     }
 
     public float getScale() {
@@ -54,11 +47,34 @@ public class GameObject {
         this.scale = scale;
     }
 
+    public Vector3f getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(float x, float y, float z) {
+        this.rotation.x = x;
+        this.rotation.y = y;
+        this.rotation.z = z;
+    }
+
     public Mesh getMesh() {
-        return mesh;
+        return meshes[0];
+    }
+
+    public Mesh[] getMeshes() {
+        return meshes;
+    }
+
+    public void setMeshes(Mesh[] meshes) {
+        this.meshes = meshes;
     }
 
     public void setMesh(Mesh mesh) {
-        this.mesh = mesh;
+        if (this.meshes != null) {
+            for (Mesh currMesh : meshes) {
+                currMesh.cleanUp();
+            }
+        }
+        this.meshes = new Mesh[]{mesh};
     }
 }
