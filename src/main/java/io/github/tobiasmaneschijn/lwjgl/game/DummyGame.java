@@ -30,12 +30,13 @@ public class DummyGame implements IGameLogic {
 
     public DummyGame() {
         renderer = new Renderer();
+        hud = new Hud();
     }
 
     @Override
     public void init(Window window) throws Exception {
+        hud.init(window);
         renderer.init(window);
-
         scene = new Scene();
         playerController = new PlayerController();
         playerController.init(window);
@@ -248,11 +249,12 @@ public class DummyGame implements IGameLogic {
 
     @Override
     public void render(Window window) {
-        if (hud != null) {
-            hud.updateSize(window);
-        }
+
         playerController.render(window);
-        renderer.render(window, playerController.getCamera(), scene, hud);
+        renderer.render(window, playerController.getCamera(), scene);
+        if (hud != null) {
+            hud.render(window);
+        }
     }
 
     @Override

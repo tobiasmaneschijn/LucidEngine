@@ -88,8 +88,19 @@
                                     <directory>shaders</directory>
                                     <filtering>false</filtering>
                                 </resource>
+                            </resources>
+                        </configuration>
+                    </execution> <execution>
+                        <id>copy-resources-fonts</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/classes/fonts</outputDirectory>
+                            <resources>
                                 <resource>
-                                    <directory>fonts</directory>
+                                    <directory>shaders</directory>
                                     <filtering>false</filtering>
                                 </resource>
                             </resources>

@@ -108,6 +108,7 @@ public class Window {
         // Set the clear color
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_STENCIL_TEST);
         if (opts.showTriangles) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
@@ -116,6 +117,28 @@ public class Window {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+        if (opts.cullFace) {
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_BACK);
+        }
+
+        if(opts.hideCursor){
+            glfwSetInputMode(windowHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        }else if (opts.grabCursor){
+            glfwSetInputMode(windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+
+
+
+        if (opts.antialiasing) {
+            glfwWindowHint(GLFW_SAMPLES, 4);
+        }
+    }
+
+    public void restoreState() {
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_STENCIL_TEST);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         if (opts.cullFace) {
             glEnable(GL_CULL_FACE);
             glCullFace(GL_BACK);
@@ -171,11 +194,25 @@ public class Window {
         glfwPollEvents();
     }
 
+
+    public WindowOptions getOptions() {
+        return opts;
+    }
+
     public static class WindowOptions {
 
         public boolean cullFace;
 
         public boolean showTriangles;
 
+        public boolean showFps;
+
+        public boolean compatibleProfile;
+
+        public boolean antialiasing;
+
+        public boolean hideCursor;
+
+        public boolean grabCursor;
     }
 }

@@ -11,6 +11,11 @@ public class Main {
             boolean vSync = true;
             IGameLogic gameLogic = new DummyGame();
             Window.WindowOptions opts = new Window.WindowOptions();
+            opts.cullFace = true;
+            opts.showFps = true;
+            opts.compatibleProfile = true;
+            opts.antialiasing = true;
+            opts.hideCursor = true;
             GameEngine gameEng = new GameEngine("GAME", vSync, opts, gameLogic);
             gameEng.run();
         } catch (Exception excp) {
