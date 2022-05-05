@@ -1,6 +1,7 @@
 package io.github.tobiasmaneschijn.lwjgl.utils;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.system.MemoryUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,71 +18,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import static org.lwjgl.BufferUtils.createByteBuffer;
-import static org.lwjgl.system.MemoryUtil.memSlice;
 
 public class Utils {
-
-    /*
-     *  This method is used to load contents of a file from the resources folder.
-     */
     public static String loadResource(String fileName) throws Exception {
         String result;
+        System.out.println(Utils.class.getResource("/"));
         try (InputStream in = Utils.class.getResourceAsStream(fileName);
              Scanner scanner = new Scanner(in, java.nio.charset.StandardCharsets.UTF_8.name())) {
             result = scanner.useDelimiter("\\A").next();
         }
         return result;
-    }
-
-
-    private static ByteBuffer resizeBuffer(ByteBuffer buffer, int newCapacity) {
-        ByteBuffer newBuffer = BufferUtils.createByteBuffer(newCapacity);
-        buffer.flip();
-        newBuffer.put(buffer);
-        return newBuffer;
-    }
-
-    /**
-     * Reads the specified resource and returns the raw data as a ByteBuffer.
-     *
-     * @param resource   the resource to read
-     * @param bufferSize the initial buffer size
-     * @return the resource data
-     * @throws IOException if an IO error occurs
-     */
-    public static ByteBuffer ioResourceToByteBuffer(String resource, int bufferSize) throws IOException {
-        ByteBuffer buffer;
-
-        Path path = Paths.get(resource);
-        if (Files.isReadable(path)) {
-            try (SeekableByteChannel fc = Files.newByteChannel(path)) {
-                buffer = createByteBuffer((int) fc.size() + 1);
-                while (fc.read(buffer) != -1) {
-                    ;
-                }
-            }
-        } else {
-            try (
-                    InputStream source = Utils.class.getClassLoader().getResourceAsStream(resource);
-                    ReadableByteChannel rbc = Channels.newChannel(source)
-            ) {
-                buffer = createByteBuffer(bufferSize);
-
-                while (true) {
-                    int bytes = rbc.read(buffer);
-                    if (bytes == -1) {
-                        break;
-                    }
-                    if (buffer.remaining() == 0) {
-                        buffer = resizeBuffer(buffer, buffer.capacity() * 3 / 2); // 50%
-                    }
-                }
-            }
-        }
-
-        buffer.flip();
-        return memSlice(buffer);
     }
 
     public static List<String> readAllLines(String fileName) throws Exception {
@@ -103,7 +49,7 @@ public class Utils {
     public static float[] listToArray(List<Float> list) {
         int size = list != null ? list.size() : 0;
         float[] floatArr = new float[size];
-        for(int i=0; i<size; i++) {
+        for (int i = 0; i < size; i++) {
             floatArr[i] = list.get(i);
         }
         return floatArr;
@@ -111,11 +57,49 @@ public class Utils {
 
     public static boolean existsResourceFile(String fileName) {
         boolean result;
-        try (InputStream is = Utils.class.getResourceAsStream(fileName ) ) {
+        try (InputStream is = Utils.class.getResourceAsStream(fileName)) {
             result = is != null;
         } catch (Exception excp) {
             result = false;
         }
         return result;
+    }
+
+    public static ByteBuffer ioResourceToByteBuffer(String resource, int bufferSize) throws IOException {
+        ByteBuffer buffer;
+
+        Path path = Paths.get(resource);
+        if (Files.isReadable(path)) {
+            try (SeekableByteChannel fc = Files.newByteChannel(path)) {
+                buffer = MemoryUtil.memAlloc((int) fc.size() + 1);
+                while (fc.read(buffer) != -1) ;
+            }
+        } else {
+            try (
+                    InputStream source = Utils.class.getResourceAsStream(resource);
+                    ReadableByteChannel rbc = Channels.newChannel(source)) {
+                buffer = MemoryUtil.memAlloc(bufferSize);
+
+                while (true) {
+                    int bytes = rbc.read(buffer);
+                    if (bytes == -1) {
+                        break;
+                    }
+                    if (buffer.remaining() == 0) {
+                        buffer = resizeBuffer(buffer, buffer.capacity() * 2);
+                    }
+                }
+            }
+        }
+
+        buffer.flip();
+        return buffer;
+    }
+
+    private static ByteBuffer resizeBuffer(ByteBuffer buffer, int newCapacity) {
+        ByteBuffer newBuffer = BufferUtils.createByteBuffer(newCapacity);
+        buffer.flip();
+        newBuffer.put(buffer);
+        return newBuffer;
     }
 }

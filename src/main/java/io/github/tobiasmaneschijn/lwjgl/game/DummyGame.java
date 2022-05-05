@@ -5,22 +5,17 @@ import io.github.tobiasmaneschijn.lwjgl.engine.MouseInput;
 import io.github.tobiasmaneschijn.lwjgl.engine.Scene;
 import io.github.tobiasmaneschijn.lwjgl.engine.Window;
 import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.GameObject;
-import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.Terrain;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.*;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.DirectionalLight;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.SceneLight;
 import io.github.tobiasmaneschijn.lwjgl.game.player.PlayerController;
-import io.github.tobiasmaneschijn.lwjgl.utils.loaders.md5.MD5Loader;
-import io.github.tobiasmaneschijn.lwjgl.utils.loaders.md5.MD5Model;
+import io.github.tobiasmaneschijn.lwjgl.utils.loaders.assimp.StaticMeshLoader;
 import io.github.tobiasmaneschijn.lwjgl.utils.loaders.obj.OBJLoader;
-import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.lwjgl.glfw.GLFW.*;
 
 public class DummyGame implements IGameLogic {
 
@@ -62,13 +57,10 @@ public class DummyGame implements IGameLogic {
 
     private void buildFloor( List<GameObject> gameObjects) throws Exception {
         float reflectance = 0f;
-        Mesh quadMesh = OBJLoader.loadMesh("/models/plane.obj");
-        Mesh quadMesh2 = OBJLoader.loadMesh("/models/plane.obj");
-        Texture texture = new Texture("textures/rock.png");
+        Mesh quadMesh = StaticMeshLoader.load("models/plane.obj", "")[0];
+        Mesh quadMesh2 =  StaticMeshLoader.load("models/plane.obj", "")[0];
         Material mat1 = new Material(new Vector4f(0.1f, 0.1f, 0.1f, 1.0f), reflectance);
         Material mat2 = new Material(new Vector4f(1.0f, 1.0f, 1.0f, 1.0f), reflectance);
-        //Material quadMaterial = new Material(texture, reflectance);
-       // quadMaterial.setNormalMap(new Texture("textures/rock_normals.png"));
         quadMesh.setMaterial(mat1);
         quadMesh2.setMaterial(mat2);
         int size = (int) Math.sqrt(64);
@@ -91,19 +83,19 @@ public class DummyGame implements IGameLogic {
         Material mat1 = new Material(new Vector4f(0.1f, 0.1f, 0.1f, 1.0f), 0);
 
         // Load the pieces
-        Mesh kingBMesh = OBJLoader.loadMesh("/models/chess/king.obj");
-        Mesh queenBMesh = OBJLoader.loadMesh("/models/chess/queen.obj");
-        Mesh rookBMesh = OBJLoader.loadMesh("/models/chess/rook.obj");
-        Mesh bishopBMesh = OBJLoader.loadMesh("/models/chess/bishop.obj");
-        Mesh knightBMesh = OBJLoader.loadMesh("/models/chess/knight.obj");
-        Mesh pawnBMesh = OBJLoader.loadMesh("/models/chess/pawn.obj");
+        Mesh kingBMesh = StaticMeshLoader.load("models/chess/king.obj", "")[0];
+        Mesh queenBMesh = StaticMeshLoader.load("models/chess/queen.obj", "")[0];
+        Mesh rookBMesh = StaticMeshLoader.load("models/chess/rook.obj", "")[0];
+        Mesh bishopBMesh = StaticMeshLoader.load("models/chess/bishop.obj", "")[0];
+        Mesh knightBMesh = StaticMeshLoader.load("models/chess/knight.obj", "")[0];
+        Mesh pawnBMesh = StaticMeshLoader.load("models/chess/pawn.obj", "")[0];
 
-        Mesh kingWMesh = OBJLoader.loadMesh("/models/chess/king.obj");
-        Mesh queenWMesh = OBJLoader.loadMesh("/models/chess/queen.obj");
-        Mesh rookWMesh = OBJLoader.loadMesh("/models/chess/rook.obj");
-        Mesh bishopWMesh = OBJLoader.loadMesh("/models/chess/bishop.obj");
-        Mesh knightWMesh = OBJLoader.loadMesh("/models/chess/knight.obj");
-        Mesh pawnWMesh = OBJLoader.loadMesh("/models/chess/pawn.obj");
+        Mesh kingWMesh = StaticMeshLoader.load("models/chess/king.obj", "")[0];
+        Mesh queenWMesh = StaticMeshLoader.load("models/chess/queen.obj", "")[0];
+        Mesh rookWMesh = StaticMeshLoader.load("models/chess/rook.obj", "")[0];
+        Mesh bishopWMesh = StaticMeshLoader.load("models/chess/bishop.obj", "")[0];
+        Mesh knightWMesh = StaticMeshLoader.load("models/chess/knight.obj", "")[0];
+        Mesh pawnWMesh = StaticMeshLoader.load("models/chess/pawn.obj", "")[0];
 
         // set the materials
         kingBMesh.setMaterial(mat1);

@@ -1,15 +1,17 @@
 package io.github.tobiasmaneschijn.lwjgl.engine.graphics;
-import java.nio.IntBuffer;
-
-import java.nio.ByteBuffer;
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.*;
-import static org.lwjgl.opengl.GL30.*;
-import static org.lwjgl.stb.STBImage.*;
 
 import io.github.tobiasmaneschijn.lwjgl.utils.Utils;
 import org.lwjgl.system.MemoryStack;
-import static org.lwjgl.system.MemoryStack.*;
+
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
+import static org.lwjgl.opengl.GL30.glGenerateMipmap;
+import static org.lwjgl.stb.STBImage.stbi_image_free;
+import static org.lwjgl.stb.STBImage.stbi_load_from_memory;
+import static org.lwjgl.system.MemoryStack.stackPush;
 
 public class Texture {
 
@@ -80,7 +82,7 @@ public class Texture {
             // Generate Mip Map
             glGenerateMipmap(GL_TEXTURE_2D);
 
-            stbi_image_free(decodedImage);
+            stbi_image_free(imageData);
         }
     }
 
