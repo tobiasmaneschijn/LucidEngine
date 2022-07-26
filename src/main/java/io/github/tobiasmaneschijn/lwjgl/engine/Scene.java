@@ -31,6 +31,13 @@ public class Scene {
         return meshMap;
     }
 
+    public void clearScene(){
+        for (Mesh mesh : meshMap.keySet()) {
+            mesh.cleanUp();
+        }
+        meshMap.clear();
+    }
+
     public void setGameItems(GameObject[] gameItems) {
         int numGameItems = gameItems != null ? gameItems.length : 0;
         for (int i=0; i<numGameItems; i++) {

@@ -19,7 +19,7 @@ public class GameGUI implements IGuiLayer {
         style.setColor(colorId, color.x, color.y, color.z, color.w);
     }
 
-    private void setDefaultStyle() {
+    public void setDefaultStyle() {
         // Colors
 
         ImVec4 blackSemi = new ImVec4(0.00f, 0.00f, 0.00f, 0.94f);
@@ -151,10 +151,35 @@ public class GameGUI implements IGuiLayer {
 
         ImGui.begin("Chess Menu");
 
-        if (ImGui.button("Start game")) {
-            setDefaultStyle();
+        if(!game.isHasBoard()) {
+            if (ImGui.button("Spawn Board")) {
+                try {
+                    game.spawnBoard();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
+        if(!game.isHasPieces()) {
+            if (ImGui.button("Spawn Pieces")) {
+                try {
+                    game.spawnPieces();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        if(ImGui.button("Clear Level")){
+            game.clearLevel();
+        }
+
+        ImGui.end();
+
+        ImGui.begin("Debug Stats");
+        ImGui.text("Delta Time: " + game.getDeltaTime());
+        ImGui.text("Light Angle: " + game.getLightAngle());
         ImGui.end();
     }
 }

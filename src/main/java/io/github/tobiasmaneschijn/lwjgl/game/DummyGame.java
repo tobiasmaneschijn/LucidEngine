@@ -25,6 +25,7 @@ public class DummyGame implements IGameLogic {
     private static final int OFFSET = 2;
     private static final int SCALE = 2;
 
+    private float deltaTime = 0;
     public Renderer getRenderer() {
         return renderer;
     }
@@ -40,9 +41,17 @@ public class DummyGame implements IGameLogic {
     private final Renderer renderer;
     private Scene scene;
     private PlayerController playerController;
+
+    public float getLightAngle() {
+        return lightAngle;
+    }
+
     private float lightAngle;
     private float lightinc;
     private final GameGUI guiLayer;
+    private boolean hasBoard = false;
+    private boolean hasPieces = false;
+    private List<GameObject>  gameObjects;
 
     public DummyGame() {
         renderer = new Renderer();
@@ -56,19 +65,38 @@ public class DummyGame implements IGameLogic {
         playerController = new PlayerController();
         playerController.init(window);
 
+        guiLayer.setDefaultStyle();
+
+        gameObjects = new ArrayList<>();
+      //  buildFloor( gameObjects);
+       // buildPieces( gameObjects);
 
 
-        List<GameObject> gameObjects = new ArrayList<>();
-        buildFloor( gameObjects);
-        buildPieces( gameObjects);
 
-
-
-        scene.setGameItems(gameObjects.toArray(new GameObject[0]));
 
         // Setup Lights
         setupLights();
 
+    }
+
+    public void spawnBoard() throws Exception {
+        if(hasBoard) return;
+        buildFloor(gameObjects);
+        scene.setGameItems(gameObjects.toArray(new GameObject[0]));
+        hasBoard = true;
+    }
+
+    public void spawnPieces() throws Exception{
+        if (hasPieces) return;
+        buildPieces(gameObjects);
+        hasPieces = true;
+        scene.setGameItems(gameObjects.toArray(new GameObject[0]));
+    }
+    public void clearLevel(){
+        gameObjects.clear();
+        hasPieces = false;
+        hasBoard = false;
+        scene.clearScene();
     }
 
     private void buildFloor( List<GameObject> gameObjects) throws Exception {
@@ -95,8 +123,8 @@ public class DummyGame implements IGameLogic {
     private void buildPieces( List<GameObject> gameObjects) throws Exception {
 
         // Create material for the white pieces
-        Material mat2 = new Material(new Vector4f(.75f, .75f, .75f, 1.0f), 0);
-        Material mat1 = new Material(new Vector4f(0.25f, 0.25f, 0.25f, 1.0f), 0);
+        Material mat2 = new Material(new Vector4f(1f, .10f, .10f, 1.0f), .5f);
+        Material mat1 = new Material(new Vector4f(0.15f, 0.15f, 0.15f, 1.0f), .8f);
 
         // Load the pieces
         Mesh kingBMesh = StaticMeshLoader.load("models/chess/king.obj", "")[0];
@@ -266,6 +294,7 @@ public class DummyGame implements IGameLogic {
 
     @Override
     public void update(float interval, MouseInput mouseInput) {
+        deltaTime = interval;
         playerController.update(interval, mouseInput);
 
         lightAngle += lightinc;
@@ -299,5 +328,17 @@ public class DummyGame implements IGameLogic {
     public void cleanup() {
         renderer.cleanup();
         scene.cleanup();
+    }
+
+    public boolean isHasBoard() {
+        return hasBoard;
+    }
+
+    public boolean isHasPieces() {
+        return hasPieces;
+    }
+
+    public float getDeltaTime() {
+        return deltaTime;
     }
 }
