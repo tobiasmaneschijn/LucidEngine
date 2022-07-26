@@ -22,7 +22,7 @@ public class GameEngine implements Runnable {
     }
 
     public GameEngine(String windowTitle, int width, int height, boolean vSync, Window.WindowOptions opts, IGameLogic gameLogic) throws Exception {
-        window = new Window(windowTitle, width, height, vSync, opts);
+        window = new Window(windowTitle, width, height, vSync, opts, gameLogic.getGuiLayer());
         mouseInput = new MouseInput();
         this.gameLogic = gameLogic;
         timer = new Timer();
@@ -75,7 +75,6 @@ public class GameEngine implements Runnable {
                 sync();
             }
         }
-
     }
 
     private void sync() {

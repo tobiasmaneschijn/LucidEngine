@@ -1,9 +1,11 @@
 package io.github.tobiasmaneschijn.lwjgl.engine;
 
-import static org.lwjgl.glfw.GLFW.*;
+import io.github.tobiasmaneschijn.lwjgl.engine.hud.IGuiLayer;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+
+import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 public class Window {
@@ -22,13 +24,16 @@ public class Window {
 
     private WindowOptions opts;
 
-    public Window(String title, int width, int height, boolean vSync, WindowOptions opts) {
+    private IGuiLayer imGUILayer;
+
+    public Window(String title, int width, int height, boolean vSync, WindowOptions opts, IGuiLayer imGUILayer) {
         this.title = title;
         this.width = width;
         this.height = height;
         this.vSync = vSync;
         this.resized = false;
         this.opts = opts;
+        this.imGUILayer = imGUILayer;
     }
 
     public void init() {
@@ -133,7 +138,10 @@ public class Window {
         if (opts.antialiasing) {
             glfwWindowHint(GLFW_SAMPLES, 4);
         }
+
+
     }
+
 
     public void restoreState() {
         glEnable(GL_DEPTH_TEST);
@@ -197,6 +205,10 @@ public class Window {
 
     public WindowOptions getOptions() {
         return opts;
+    }
+
+    public IGuiLayer getGuiLayer() {
+        return imGUILayer;
     }
 
     public static class WindowOptions {

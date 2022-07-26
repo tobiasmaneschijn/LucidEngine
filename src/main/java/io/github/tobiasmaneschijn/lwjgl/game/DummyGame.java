@@ -8,9 +8,9 @@ import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.GameObject;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.*;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.DirectionalLight;
 import io.github.tobiasmaneschijn.lwjgl.engine.graphics.lights.SceneLight;
+import io.github.tobiasmaneschijn.lwjgl.engine.hud.IGuiLayer;
 import io.github.tobiasmaneschijn.lwjgl.game.player.PlayerController;
 import io.github.tobiasmaneschijn.lwjgl.utils.loaders.assimp.StaticMeshLoader;
-import io.github.tobiasmaneschijn.lwjgl.utils.loaders.obj.OBJLoader;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
@@ -25,22 +25,32 @@ public class DummyGame implements IGameLogic {
     private static final int OFFSET = 2;
     private static final int SCALE = 2;
 
+    public Renderer getRenderer() {
+        return renderer;
+    }
+
+    public Scene getScene() {
+        return scene;
+    }
+
+    public PlayerController getPlayerController() {
+        return playerController;
+    }
+
     private final Renderer renderer;
     private Scene scene;
-    private Hud hud;
     private PlayerController playerController;
     private float lightAngle;
     private float lightinc;
-
+    private final GameGUI guiLayer;
 
     public DummyGame() {
         renderer = new Renderer();
-        hud = new Hud();
+        guiLayer = new GameGUI(this);
     }
 
     @Override
     public void init(Window window) throws Exception {
-        hud.init(window);
         renderer.init(window);
         scene = new Scene();
         playerController = new PlayerController();
@@ -278,17 +288,16 @@ public class DummyGame implements IGameLogic {
 
         playerController.render(window);
         renderer.render(window, playerController.getCamera(), scene);
-        if (hud != null) {
-            hud.render(window);
-        }
+    }
+
+    @Override
+    public IGuiLayer getGuiLayer() {
+        return guiLayer;
     }
 
     @Override
     public void cleanup() {
         renderer.cleanup();
         scene.cleanup();
-        if (hud != null) {
-            hud.cleanup();
-        }
     }
 }

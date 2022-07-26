@@ -11,7 +11,7 @@ import org.joml.Vector3f;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_X;
 
-public class PlayerController implements IGameLogic {
+public class PlayerController {
 
     private static final float MOUSE_SENSITIVITY = 0.3f;
     private static final float CAMERA_POS_STEP = 0.05f;
@@ -42,13 +42,11 @@ public class PlayerController implements IGameLogic {
         targetRotVec = new Vector2f(0.0f, 0.0f);
     }
 
-    @Override
     public void init(Window window) throws Exception {
         camera.setPosition(-1.0f, 20.0f, 2.0f);
         camera.setRotation(50f, 45f, 0f);
     }
 
-    @Override
     public void input(Window window, MouseInput mouseInput) {
         cameraInc.set(0, 0, 0);
         hasInput = false;
@@ -84,7 +82,7 @@ public class PlayerController implements IGameLogic {
             targetVelocity.normalize(MAX_SPEED);
         }
     }
-    @Override
+
     public void update(float interval, MouseInput mouseInput) {
         // Update camera based on mouse
 
@@ -113,12 +111,10 @@ public class PlayerController implements IGameLogic {
         }
     }
 
-    @Override
     public void render(Window window) {
 
     }
 
-    @Override
     public void cleanup() {
 
     }

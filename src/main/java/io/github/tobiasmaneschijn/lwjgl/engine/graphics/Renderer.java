@@ -1,5 +1,10 @@
 package io.github.tobiasmaneschijn.lwjgl.engine.graphics;
 
+import imgui.ImGui;
+import imgui.ImGuiIO;
+import imgui.flag.ImGuiConfigFlags;
+import imgui.gl3.ImGuiImplGl3;
+import imgui.glfw.ImGuiImplGlfw;
 import io.github.tobiasmaneschijn.lwjgl.engine.Scene;
 import io.github.tobiasmaneschijn.lwjgl.engine.Window;
 import io.github.tobiasmaneschijn.lwjgl.engine.gameobjects.GameObject;
@@ -13,6 +18,7 @@ import io.github.tobiasmaneschijn.lwjgl.utils.Utils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 import java.util.Map;
@@ -50,6 +56,10 @@ public class Renderer {
 
     private ShaderProgram depthShaderProgram;
 
+    // IMGUI
+    private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
+    private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
+    private String glslVersion = null;
 
     public Renderer() {
         transformation = new Transformation();
@@ -62,6 +72,12 @@ public class Renderer {
         setupDepthShader();
         setupSkyBoxShader();
         setupSceneShader();
+        ImGui.createContext();
+        ImGuiIO guiIo = ImGui.getIO();
+        guiIo.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
+        guiIo.addConfigFlags(ImGuiConfigFlags.DockingEnable);
+        imGuiGlfw.init(window.getWindowHandle(), true);
+        imGuiGl3.init(glslVersion);
     }
 
     private void setupSkyBoxShader() throws Exception {
@@ -123,6 +139,7 @@ public class Renderer {
     public void render(Window window, Camera camera, Scene scene) {
         clear();
 
+
         // Render depth map before view ports has been set up
         renderDepthMap(window, camera, scene);
 
@@ -135,6 +152,12 @@ public class Renderer {
         renderScene(window, camera, scene);
 
         renderSkyBox(window, camera, scene);
+
+        imGuiGlfw.newFrame();
+        ImGui.newFrame();
+        window.getGuiLayer().drawGUI();
+        renderImGui(window);
+       // renderAxes(camera);
 
     }
 
@@ -280,38 +303,16 @@ public class Renderer {
     }
 
 
-    /**
-     * Renders the three axis in space (For debugging purposes only
-     *
-     * @param camera
-     */
-    private void renderAxes(Camera camera) {
-        glPushMatrix();
-        glLoadIdentity();
-        float rotX = camera.getRotation().x;
-        float rotY = camera.getRotation().y;
-        float rotZ = 0;
-        glRotatef(rotX, 1.0f, 0.0f, 0.0f);
-        glRotatef(rotY, 0.0f, 1.0f, 0.0f);
-        glRotatef(rotZ, 0.0f, 0.0f, 1.0f);
-        glLineWidth(2.0f);
-
-        glBegin(GL_LINES);
-        // X Axis
-        glColor3f(1.0f, 0.0f, 0.0f);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(1.0f, 0.0f, 0.0f);
-        // Y Axis
-        glColor3f(0.0f, 1.0f, 0.0f);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(0.0f, 1.0f, 0.0f);
-        // Z Axis
-        glColor3f(1.0f, 1.0f, 1.0f);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(0.0f, 0.0f, 1.0f);
-        glEnd();
-
-        glPopMatrix();
+    private void renderImGui(Window window){
+        ImGui.render();
+        imGuiGl3.renderDrawData(ImGui.getDrawData());
+    ;
+        if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
+            final long backupWindowPtr = GLFW.glfwGetCurrentContext();
+            ImGui.updatePlatformWindows();
+            ImGui.renderPlatformWindowsDefault();
+            GLFW.glfwMakeContextCurrent(backupWindowPtr);
+        }
     }
 
     public void cleanup() {
@@ -327,6 +328,10 @@ public class Renderer {
         if (sceneShaderProgram != null) {
             sceneShaderProgram.cleanup();
         }
+
+        imGuiGlfw.dispose();
+        imGuiGl3.dispose();
+        ImGui.destroyContext();
     }
 }
 
