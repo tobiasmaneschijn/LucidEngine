@@ -55,4 +55,13 @@ public class Camera {
         rotation.y += offsetY;
         rotation.z += offsetZ;
     }
+
+    public void lookAt(Vector3f target, Vector3f up) {
+        Vector3f forward = new Vector3f(target).sub(position).normalize();
+        Vector3f right = new Vector3f(forward).cross(up).normalize();
+        up.cross(right).normalize();
+        rotation.x = (float)Math.toDegrees(Math.atan2(right.x, right.z));
+        rotation.y = (float)Math.toDegrees(Math.atan2(up.x, up.z));
+        //rotation.z = (float)Math.toDegrees(Math.atan2(forward.x, forward.z));
+    }
 }

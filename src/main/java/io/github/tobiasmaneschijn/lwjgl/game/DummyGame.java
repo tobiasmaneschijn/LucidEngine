@@ -256,7 +256,7 @@ public class DummyGame implements IGameLogic {
 
     @Override
     public void update(float interval, MouseInput mouseInput) {
-         playerController.update(interval, mouseInput);
+        playerController.update(interval, mouseInput);
 
         lightAngle += lightinc;
         if (lightAngle < 0) {

@@ -74,6 +74,7 @@ public class PlayerController implements IGameLogic {
             cameraInc.y = 1;
             hasInput = true;
         }
+
         addAcceleration(cameraInc);
     }
 
@@ -95,6 +96,7 @@ public class PlayerController implements IGameLogic {
         }
         rotVec.lerp(targetRotVec, interval * MOUSE_SPEED);
         camera.moveRotation(0, rotVec.y * MOUSE_SENSITIVITY, 0);
+        //camera.lookAt(new Vector3f(0, 1, 0), new Vector3f(0, 1, 0));
         updateSpeed(interval);
         camera.movePosition(currentVelocity.x * interval , 0, currentVelocity.z * interval );
     }
